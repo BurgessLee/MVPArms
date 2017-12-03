@@ -1,18 +1,3 @@
-/**
- * Copyright 2017 JessYan
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jess.arms.http;
 
 import android.support.annotation.Nullable;
@@ -40,54 +25,62 @@ import okio.Buffer;
 import okio.BufferedSource;
 import timber.log.Timber;
 
-
 /**
  * ================================================
  * 解析框架中的网络请求和响应结果,并以日志形式输出,调试神器
  * 可使用 {@link GlobalConfigModule.Builder#printHttpLogLevel(Level)} 控制或关闭日志
- * <p>
- * Created by JessYan on 7/1/2016.
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 @Singleton
 public class RequestInterceptor implements Interceptor {
+
     private GlobalHttpHandler mHandler;
-    private final Level printLevel;
+    private final Level mPrintLevel;
 
     public enum Level {
-        NONE,       //不打印log
-        REQUEST,    //只打印请求信息
-        RESPONSE,   //只打印响应信息
-        ALL         //所有数据全部打印
+        /**
+         * 不打印log
+         */
+        NONE,
+        /**
+         * 只打印请求信息
+         */
+        REQUEST,
+        /**
+         * 只打印响应信息
+         */
+        RESPONSE,
+        /**
+         * 所有数据全部打印
+         */
+        ALL
     }
 
     @Inject
     public RequestInterceptor(@Nullable GlobalHttpHandler handler, @Nullable Level level) {
-        this.mHandler = handler;
-        if (level == null)
-            printLevel = Level.ALL;
-        else
-            printLevel = level;
+        mHandler = handler;
+        if (level == null) {
+            mPrintLevel = Level.ALL;
+        } else {
+            mPrintLevel = level;
+        }
     }
 
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
 
-        boolean logRequest = printLevel == Level.ALL || (printLevel != Level.NONE && printLevel == Level.REQUEST);
-
+        boolean logRequest = mPrintLevel == Level.ALL || (mPrintLevel != Level.NONE && mPrintLevel == Level.REQUEST);
         if (logRequest) {
             boolean hasRequestBody = request.body() != null;
-            //打印请求信息
+            // 打印请求信息
             Timber.tag(getTag(request, "Request_Info")).w("Params : 「 %s 」%nConnection : 「 %s 」%nHeaders : %n「 %s 」"
                     , hasRequestBody ? parseParams(request.newBuilder().build().body()) : "Null"
                     , chain.connection()
                     , request.headers());
         }
 
-        boolean logResponse = printLevel == Level.ALL || (printLevel != Level.NONE && printLevel == Level.RESPONSE);
+        boolean logResponse = mPrintLevel == Level.ALL || (mPrintLevel != Level.NONE && mPrintLevel == Level.RESPONSE);
 
         long t1 = logResponse ? System.nanoTime() : 0;
         Response originalResponse;
@@ -101,32 +94,28 @@ public class RequestInterceptor implements Interceptor {
 
         if (logResponse) {
             String bodySize = originalResponse.body().contentLength() != -1 ? originalResponse.body().contentLength() + "-byte" : "unknown-length";
-            //打印响应时间以及响应头
+            // 打印响应时间以及响应头
             Timber.tag(getTag(request, "Response_Info")).w("Received response in [ %d-ms ] , [ %s ]%n%s"
                     , TimeUnit.NANOSECONDS.toMillis(t2 - t1), bodySize, originalResponse.headers());
         }
 
-        //打印响应结果
+        // 打印响应结果
         String bodyString = printResult(request, originalResponse.newBuilder().build(), logResponse);
 
-        if (mHandler != null)//这里可以比客户端提前一步拿到服务器返回的结果,可以做一些操作,比如token超时,重新获取
+        // 这里可以比客户端提前一步拿到服务器返回的结果, 可以做一些操作, 比如token超时, 重新获取
+        if (mHandler != null) {
             return mHandler.onHttpResultResponse(bodyString, chain, originalResponse);
+        }
 
         return originalResponse;
     }
 
     /**
      * 打印响应结果
-     *
-     * @param request
-     * @param response
-     * @param logResponse
-     * @return
-     * @throws IOException
      */
     @Nullable
     private String printResult(Request request, Response response, boolean logResponse) throws IOException {
-        //读取服务器返回的结果
+        // 读取服务器返回的结果
         ResponseBody responseBody = response.body();
         String bodyString = null;
         if (isParseable(responseBody.contentType())) {
@@ -135,15 +124,12 @@ public class RequestInterceptor implements Interceptor {
                 source.request(Long.MAX_VALUE); // Buffer the entire body.
                 Buffer buffer = source.buffer();
 
-                //获取content的压缩类型
-                String encoding = response
-                        .headers()
-                        .get("Content-Encoding");
+                // 获取content的压缩类型
+                String encoding = response.headers().get("Content-Encoding");
 
                 Buffer clone = buffer.clone();
 
-
-                //解析response content
+                // 解析response content
                 bodyString = parseContent(responseBody, encoding, clone);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -153,7 +139,6 @@ public class RequestInterceptor implements Interceptor {
                         CharacterHandler.jsonFormat(bodyString) : isXml(responseBody.contentType()) ?
                         CharacterHandler.xmlFormat(bodyString) : bodyString);
             }
-
         } else {
             if (logResponse) {
                 Timber.tag(getTag(request, "Response_Result")).w("This result isn't parsed");
@@ -162,19 +147,12 @@ public class RequestInterceptor implements Interceptor {
         return bodyString;
     }
 
-
     private String getTag(Request request, String tag) {
         return String.format(" [%s] 「 %s 」>>> %s", request.method(), request.url().toString(), tag);
     }
 
-
     /**
      * 解析服务器响应的内容
-     *
-     * @param responseBody
-     * @param encoding
-     * @param clone
-     * @return
      */
     private String parseContent(ResponseBody responseBody, String encoding, Buffer clone) {
         Charset charset = Charset.forName("UTF-8");
@@ -186,42 +164,37 @@ public class RequestInterceptor implements Interceptor {
             return ZipHelper.decompressForGzip(clone.readByteArray(), convertCharset(charset));//解压
         } else if (encoding != null && encoding.equalsIgnoreCase("zlib")) {//content使用zlib压缩
             return ZipHelper.decompressToStringForZlib(clone.readByteArray(), convertCharset(charset));//解压
-        } else {//content没有被压缩
+        } else {
+            // content没有被压缩
             return clone.readString(charset);
         }
     }
 
     /**
      * 解析请求服务器的请求参数
-     *
-     * @param body
-     * @return
-     * @throws UnsupportedEncodingException
      */
     public static String parseParams(RequestBody body) throws UnsupportedEncodingException {
         if (isParseable(body.contentType())) {
             try {
-                Buffer requestbuffer = new Buffer();
-                body.writeTo(requestbuffer);
+                Buffer requestBuffer = new Buffer();
+                body.writeTo(requestBuffer);
                 Charset charset = Charset.forName("UTF-8");
                 MediaType contentType = body.contentType();
                 if (contentType != null) {
                     charset = contentType.charset(charset);
                 }
-                return URLDecoder.decode(requestbuffer.readString(charset), convertCharset(charset));
+                return URLDecoder.decode(requestBuffer.readString(charset), convertCharset(charset));
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
         return "This params isn't parsed";
     }
 
     /**
      * 是否可以解析
-     *
-     * @param mediaType
-     * @return
      */
     public static boolean isParseable(MediaType mediaType) {
         if (mediaType == null) return false;
@@ -249,8 +222,9 @@ public class RequestInterceptor implements Interceptor {
     public static String convertCharset(Charset charset) {
         String s = charset.toString();
         int i = s.indexOf("[");
-        if (i == -1)
+        if (i == -1) {
             return s;
+        }
         return s.substring(i + 1, s.length() - 1);
     }
 }

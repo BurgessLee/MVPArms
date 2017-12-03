@@ -1,19 +1,3 @@
-/*
- * Copyright 2017 JessYan
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.jess.arms.integration.store.lifecyclemodel;
 
 import android.app.Activity;
@@ -32,10 +16,6 @@ import com.jess.arms.integration.cache.LruCache;
  * 并且之前存储的所有 {@link LifecycleModel} 的  {@link LifecycleModel#onCleared()} 方法也会被调用
  * <p>
  * 通过 {@link LifecycleModelStores} 可向 {@link Activity} 和 {@link Fragment} 提供 {@code LifecycleModelStore}
- * <p>
- * Created by JessYan on 21/11/2017 16:57
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  */
 public class LifecycleModelStore {
 
@@ -57,10 +37,6 @@ public class LifecycleModelStore {
 
     /**
      * 根据给定的 {@code key} 获取存储的 {@link LifecycleModel} 实现类
-     *
-     * @param key
-     * @param <T>
-     * @return
      */
     public final <T extends LifecycleModel> T get(String key) {
         return (T) mCache.get(key);
@@ -68,10 +44,6 @@ public class LifecycleModelStore {
 
     /**
      * 根据给定的 {@code key} 移除存储的 {@link LifecycleModel} 实现类
-     *
-     * @param key
-     * @param <T>
-     * @return
      */
     public final <T extends LifecycleModel> T remove(String key) {
         return (T) mCache.remove(key);

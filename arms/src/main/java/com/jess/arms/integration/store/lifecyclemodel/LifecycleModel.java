@@ -1,19 +1,3 @@
-/*
- * Copyright 2017 JessYan
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.jess.arms.integration.store.lifecyclemodel;
 
 import android.app.Activity;
@@ -72,14 +56,10 @@ import android.support.v4.app.Fragment;
  *
  * @see <a href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel.html">
  * 功能和 Android Architecture 中的 ViewModel 一致, 但放开了权限不仅可以存储 ViewModel, 还可以存储任意自定义对象</a>
- * <p>
- * Created by JessYan on 21/11/2017 16:57
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  */
 public interface LifecycleModel {
     /**
-     * 这个方法会在宿主 {@link Activity} 或 {@link Fragment} 被彻底销毁时被调用, 在这个方法中释放一些资源可以避免内存泄漏
+     * 该方法会在宿主 {@link Activity} 或 {@link Fragment} 被彻底销毁时被调用, 在这个方法中释放一些资源可以避免内存泄漏
      */
     @SuppressWarnings("WeakerAccess")
     void onCleared();

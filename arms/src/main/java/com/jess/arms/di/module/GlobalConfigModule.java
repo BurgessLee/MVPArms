@@ -1,22 +1,6 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.di.module;
 
 import android.app.Application;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -27,7 +11,6 @@ import com.jess.arms.http.RequestInterceptor;
 import com.jess.arms.http.imageloader.BaseImageLoaderStrategy;
 import com.jess.arms.http.imageloader.glide.GlideImageLoaderStrategy;
 import com.jess.arms.integration.cache.Cache;
-import com.jess.arms.integration.cache.CacheType;
 import com.jess.arms.integration.cache.LruCache;
 import com.jess.arms.utils.DataHelper;
 
@@ -45,16 +28,14 @@ import okhttp3.Interceptor;
 
 /**
  * ================================================
- * 框架独创的建造者模式 {@link Module},可向框架中注入外部配置的自定义参数
+ * 框架独创的建造者模式 {@link Module}, 可向框架中注入外部配置的自定义参数
  *
  * @see <a href="https://github.com/JessYanCoding/MVPArms/wiki#3.1">GlobalConfigModule Wiki 官方文档</a>
- * Created by JessYan on 2016/3/14.
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 @Module
 public class GlobalConfigModule {
+
     private HttpUrl mApiUrl;
     private BaseUrl mBaseUrl;
     private BaseImageLoaderStrategy mLoaderStrategy;
@@ -70,25 +51,24 @@ public class GlobalConfigModule {
     private Cache.Factory mCacheFactory;
 
     private GlobalConfigModule(Builder builder) {
-        this.mApiUrl = builder.apiUrl;
-        this.mBaseUrl = builder.baseUrl;
-        this.mLoaderStrategy = builder.loaderStrategy;
-        this.mHandler = builder.handler;
-        this.mInterceptors = builder.interceptors;
-        this.mErrorListener = builder.responseErrorListener;
-        this.mCacheFile = builder.cacheFile;
-        this.mRetrofitConfiguration = builder.retrofitConfiguration;
-        this.mOkhttpConfiguration = builder.okhttpConfiguration;
-        this.mRxCacheConfiguration = builder.rxCacheConfiguration;
-        this.mGsonConfiguration = builder.gsonConfiguration;
-        this.mPrintHttpLogLevel = builder.printHttpLogLevel;
-        this.mCacheFactory = builder.cacheFactory;
+        mApiUrl = builder.apiUrl;
+        mBaseUrl = builder.baseUrl;
+        mLoaderStrategy = builder.loaderStrategy;
+        mHandler = builder.handler;
+        mInterceptors = builder.interceptors;
+        mErrorListener = builder.responseErrorListener;
+        mCacheFile = builder.cacheFile;
+        mRetrofitConfiguration = builder.retrofitConfiguration;
+        mOkhttpConfiguration = builder.okhttpConfiguration;
+        mRxCacheConfiguration = builder.rxCacheConfiguration;
+        mGsonConfiguration = builder.gsonConfiguration;
+        mPrintHttpLogLevel = builder.printHttpLogLevel;
+        mCacheFactory = builder.cacheFactory;
     }
 
     public static Builder builder() {
         return new Builder();
     }
-
 
     @Singleton
     @Provides
@@ -97,11 +77,8 @@ public class GlobalConfigModule {
         return mInterceptors;
     }
 
-
     /**
-     * 提供 BaseUrl,默认使用 <"https://api.github.com/">
-     *
-     * @return
+     * 提供 BaseUrl, 默认使用 <"https://api.github.com/">
      */
     @Singleton
     @Provides
@@ -115,11 +92,8 @@ public class GlobalConfigModule {
         return mApiUrl == null ? HttpUrl.parse("https://api.github.com/") : mApiUrl;
     }
 
-
     /**
-     * 提供图片加载框架,默认使用 {@link Glide}
-     *
-     * @return
+     * 提供图片加载框架, 默认使用 {@link Glide}
      */
     @Singleton
     @Provides
@@ -127,11 +101,8 @@ public class GlobalConfigModule {
         return mLoaderStrategy == null ? new GlideImageLoaderStrategy() : mLoaderStrategy;
     }
 
-
     /**
      * 提供处理 Http 请求和响应结果的处理类
-     *
-     * @return
      */
     @Singleton
     @Provides
@@ -139,7 +110,6 @@ public class GlobalConfigModule {
     GlobalHttpHandler provideGlobalHttpHandler() {
         return mHandler;
     }
-
 
     /**
      * 提供缓存文件
@@ -150,18 +120,14 @@ public class GlobalConfigModule {
         return mCacheFile == null ? DataHelper.getCacheFile(application) : mCacheFile;
     }
 
-
     /**
      * 提供处理 RxJava 错误的管理器的回调
-     *
-     * @return
      */
     @Singleton
     @Provides
     ResponseErrorListener provideResponseErrorListener() {
         return mErrorListener == null ? ResponseErrorListener.EMPTY : mErrorListener;
     }
-
 
     @Singleton
     @Provides
@@ -205,13 +171,12 @@ public class GlobalConfigModule {
             @NonNull
             @Override
             public Cache build(CacheType type) {
-                //若想自定义 LruCache 的 size, 或者不想使用 LruCache , 想使用自己自定义的策略
-                //并使用 GlobalConfigModule.Builder#cacheFactory() 扩展
+                // 若想自定义 LruCache 的 size, 或者不想使用 LruCache , 想使用自己自定义的策略
+                // 并使用 GlobalConfigModule.Builder#cacheFactory() 扩展
                 return new LruCache(type.calculateCacheSize(application));
             }
         } : mCacheFactory;
     }
-
 
     public static final class Builder {
         private HttpUrl apiUrl;
@@ -231,7 +196,10 @@ public class GlobalConfigModule {
         private Builder() {
         }
 
-        public Builder baseurl(String baseUrl) {//基础url
+        /**
+         * 设置基础url
+         */
+        public Builder baseUrl(String baseUrl) {
             if (TextUtils.isEmpty(baseUrl)) {
                 throw new NullPointerException("BaseUrl can not be empty");
             }
@@ -239,7 +207,10 @@ public class GlobalConfigModule {
             return this;
         }
 
-        public Builder baseurl(BaseUrl baseUrl) {
+        /**
+         * 设置基础url
+         */
+        public Builder baseUrl(BaseUrl baseUrl) {
             if (baseUrl == null) {
                 throw new NullPointerException("BaseUrl can not be null");
             }
@@ -247,29 +218,40 @@ public class GlobalConfigModule {
             return this;
         }
 
-        public Builder imageLoaderStrategy(BaseImageLoaderStrategy loaderStrategy) {//用来请求网络图片
+        /**
+         * 用来请求网络图片
+         */
+        public Builder imageLoaderStrategy(BaseImageLoaderStrategy loaderStrategy) {
             this.loaderStrategy = loaderStrategy;
             return this;
         }
 
-        public Builder globalHttpHandler(GlobalHttpHandler handler) {//用来处理http响应结果
+        /**
+         * 用来处理http响应结果
+         */
+        public Builder globalHttpHandler(GlobalHttpHandler handler) {
             this.handler = handler;
             return this;
         }
 
-        public Builder addInterceptor(Interceptor interceptor) {//动态添加任意个interceptor
-            if (interceptors == null)
+        /**
+         * 动态添加任意个interceptor
+         */
+        public Builder addInterceptor(Interceptor interceptor) {
+            if (interceptors == null) {
                 interceptors = new ArrayList<>();
+            }
             this.interceptors.add(interceptor);
             return this;
         }
 
-
-        public Builder responseErrorListener(ResponseErrorListener listener) {//处理所有RxJava的onError逻辑
+        /**
+         * 处理所有RxJava的onError逻辑
+         */
+        public Builder responseErrorListener(ResponseErrorListener listener) {
             this.responseErrorListener = listener;
             return this;
         }
-
 
         public Builder cacheFile(File cacheFile) {
             this.cacheFile = cacheFile;
@@ -296,9 +278,13 @@ public class GlobalConfigModule {
             return this;
         }
 
-        public Builder printHttpLogLevel(RequestInterceptor.Level printHttpLogLevel) { //是否让框架打印 Http 的请求和响应信息
-            if (printHttpLogLevel == null)
+        /**
+         * 是否让框架打印 Http 的请求和响应信息
+         */
+        public Builder printHttpLogLevel(RequestInterceptor.Level printHttpLogLevel) {
+            if (printHttpLogLevel == null) {
                 throw new NullPointerException("printHttpLogLevel == null. Use RequestInterceptor.Level.NONE instead.");
+            }
             this.printHttpLogLevel = printHttpLogLevel;
             return this;
         }
@@ -311,9 +297,5 @@ public class GlobalConfigModule {
         public GlobalConfigModule build() {
             return new GlobalConfigModule(this);
         }
-
-
     }
-
-
 }

@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.http;
 
 import com.bumptech.glide.load.Options;
@@ -20,7 +5,9 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.ModelLoader;
 import com.bumptech.glide.load.model.ModelLoaderFactory;
 import com.bumptech.glide.load.model.MultiModelLoaderFactory;
+
 import java.io.InputStream;
+
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 
@@ -29,10 +16,10 @@ import okhttp3.OkHttpClient;
  */
 public class OkHttpUrlLoader implements ModelLoader<GlideUrl, InputStream> {
 
-    private final Call.Factory client;
+    private final Call.Factory mClient;
 
     public OkHttpUrlLoader(Call.Factory client) {
-        this.client = client;
+        mClient = client;
     }
 
     @Override
@@ -41,27 +28,27 @@ public class OkHttpUrlLoader implements ModelLoader<GlideUrl, InputStream> {
     }
 
     @Override
-    public LoadData<InputStream> buildLoadData(GlideUrl model, int width, int height,
-                                               Options options) {
-        return new LoadData<>(model, new OkHttpStreamFetcher(client, model));
+    public LoadData<InputStream> buildLoadData(GlideUrl model, int width, int height, Options options) {
+        return new LoadData<>(model, new OkHttpStreamFetcher(mClient, model));
     }
 
     /**
      * The default factory for {@link OkHttpUrlLoader}s.
      */
     public static class Factory implements ModelLoaderFactory<GlideUrl, InputStream> {
-        private static volatile Call.Factory internalClient;
-        private Call.Factory client;
+
+        private static volatile Call.Factory sInternalClient;
+        private Call.Factory mClient;
 
         private static Call.Factory getInternalClient() {
-            if (internalClient == null) {
+            if (sInternalClient == null) {
                 synchronized (Factory.class) {
-                    if (internalClient == null) {
-                        internalClient = new OkHttpClient();
+                    if (sInternalClient == null) {
+                        sInternalClient = new OkHttpClient();
                     }
                 }
             }
-            return internalClient;
+            return sInternalClient;
         }
 
         /**
@@ -77,12 +64,12 @@ public class OkHttpUrlLoader implements ModelLoader<GlideUrl, InputStream> {
          * @param client this is typically an instance of {@code OkHttpClient}.
          */
         public Factory(Call.Factory client) {
-            this.client = client;
+            mClient = client;
         }
 
         @Override
         public ModelLoader<GlideUrl, InputStream> build(MultiModelLoaderFactory multiFactory) {
-            return new OkHttpUrlLoader(client);
+            return new OkHttpUrlLoader(mClient);
         }
 
         @Override

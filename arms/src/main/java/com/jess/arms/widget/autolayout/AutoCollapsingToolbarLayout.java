@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.widget.autolayout;
 
 import android.content.Context;
@@ -30,12 +15,10 @@ import com.zhy.autolayout.utils.AutoLayoutHelper;
  * 可使用 MVP_generator_solution 中的 AutoView 模版生成各种符合 AndroidAutoLayout 规范的 {@link View}
  *
  * @see <a href="https://github.com/JessYanCoding/MVPArms/wiki#3.6">AutoLayout wiki 官方文档</a>
- * Created by JessYan on 4/14/2016
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 public class AutoCollapsingToolbarLayout extends CollapsingToolbarLayout {
+
     private AutoLayoutHelper mHelper = new AutoLayoutHelper(this);
 
     public AutoCollapsingToolbarLayout(Context context) {
@@ -52,11 +35,11 @@ public class AutoCollapsingToolbarLayout extends CollapsingToolbarLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (!isInEditMode())
+        if (!isInEditMode()) {
             mHelper.adjustChildren();
+        }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
-
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -68,9 +51,8 @@ public class AutoCollapsingToolbarLayout extends CollapsingToolbarLayout {
         return new AutoCollapsingToolbarLayout.LayoutParams(getContext(), attrs);
     }
 
+    public static class LayoutParams extends CollapsingToolbarLayout.LayoutParams implements AutoLayoutHelper.AutoLayoutParams {
 
-    public static class LayoutParams extends CollapsingToolbarLayout.LayoutParams
-            implements AutoLayoutHelper.AutoLayoutParams {
         private AutoLayoutInfo mAutoLayoutInfo;
 
         public LayoutParams(Context c, AttributeSet attrs) {
@@ -83,11 +65,9 @@ public class AutoCollapsingToolbarLayout extends CollapsingToolbarLayout {
             return mAutoLayoutInfo;
         }
 
-
         public LayoutParams(int width, int height) {
             super(width, height);
         }
-
 
         public LayoutParams(ViewGroup.LayoutParams source) {
             super(source);
@@ -96,7 +76,5 @@ public class AutoCollapsingToolbarLayout extends CollapsingToolbarLayout {
         public LayoutParams(MarginLayoutParams source) {
             super(source);
         }
-
     }
-
 }

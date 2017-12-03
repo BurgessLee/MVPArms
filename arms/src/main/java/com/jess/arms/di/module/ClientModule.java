@@ -1,18 +1,3 @@
-/**
- * Copyright 2017 JessYan
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jess.arms.di.module;
 
 import android.app.Application;
@@ -49,75 +34,64 @@ import retrofit2.converter.gson.GsonConverterFactory;
 /**
  * ================================================
  * 提供一些三方库客户端实例的 {@link Module}
- * <p>
- * Created by JessYan on 2016/3/14.
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 @Module
 public class ClientModule {
-    private static final int TIME_OUT = 10;
 
+    private static final int TIME_OUT = 10;
 
     /**
      * 提供 {@link Retrofit}
-     *
-     * @param builder
-     * @param client
-     * @param httpUrl
-     * @return
-     * @author: jess
-     * @date 8/30/16 1:15 PM
      */
     @Singleton
     @Provides
-    Retrofit provideRetrofit(Application application, @Nullable RetrofitConfiguration configuration, Retrofit.Builder builder, OkHttpClient client
-            , HttpUrl httpUrl, Gson gson) {
-        builder
-                .baseUrl(httpUrl)//域名
-                .client(client);//设置okhttp
+    Retrofit provideRetrofit(Application application, @Nullable RetrofitConfiguration configuration, Retrofit.Builder builder, OkHttpClient client, HttpUrl httpUrl, Gson gson) {
 
-        if (configuration != null)
+        // 设置域名、okhttp
+        builder.baseUrl(httpUrl).client(client);
+
+        if (configuration != null) {
             configuration.configRetrofit(application, builder);
+        }
 
-        builder
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())//使用 Rxjava
-                .addConverterFactory(GsonConverterFactory.create(gson));//使用 Gson
+        // 使用Rxjava、Gson
+        builder.addCallAdapterFactory(RxJava2CallAdapterFactory.create()).addConverterFactory(GsonConverterFactory.create(gson));
+
         return builder.build();
     }
 
     /**
      * 提供 {@link OkHttpClient}
-     *
-     * @param builder
-     * @return
      */
     @Singleton
     @Provides
-    OkHttpClient provideClient(Application application, @Nullable OkhttpConfiguration configuration, OkHttpClient.Builder builder, Interceptor intercept
-            , @Nullable List<Interceptor> interceptors, @Nullable GlobalHttpHandler handler) {
-        builder
-                .connectTimeout(TIME_OUT, TimeUnit.SECONDS)
+    OkHttpClient provideClient(Application application, @Nullable OkhttpConfiguration configuration, OkHttpClient.Builder builder, Interceptor intercept, @Nullable List<Interceptor> interceptors, @Nullable GlobalHttpHandler handler) {
+
+        builder.connectTimeout(TIME_OUT, TimeUnit.SECONDS)
                 .readTimeout(TIME_OUT, TimeUnit.SECONDS)
                 .addNetworkInterceptor(intercept);
 
-        if (handler != null)
+        if (handler != null) {
             builder.addInterceptor(new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
                     return chain.proceed(handler.onHttpRequestBefore(chain, chain.request()));
                 }
             });
+        }
 
-        if (interceptors != null) {//如果外部提供了interceptor的集合则遍历添加
+        // 如果外部提供了interceptor的集合, 则遍历添加
+        if (interceptors != null) {
             for (Interceptor interceptor : interceptors) {
                 builder.addInterceptor(interceptor);
             }
         }
 
-        if (configuration != null)
+        if (configuration != null) {
             configuration.configOkhttp(application, builder);
+        }
+
         return builder.build();
     }
 
@@ -139,7 +113,8 @@ public class ClientModule {
     @Singleton
     @Provides
     Interceptor provideInterceptor(RequestInterceptor intercept) {
-        return intercept;//打印请求信息的拦截器
+        // 打印请求信息的拦截器
+        return intercept;
     }
 
 
@@ -147,7 +122,6 @@ public class ClientModule {
      * 提供 {@link RxCache}
      *
      * @param cacheDirectory RxCache缓存路径
-     * @return
      */
     @Singleton
     @Provides
@@ -157,16 +131,16 @@ public class ClientModule {
         if (configuration != null) {
             rxCache = configuration.configRxCache(application, builder);
         }
-        if (rxCache != null) return rxCache;
-        return builder
-                .persistence(cacheDirectory, new GsonSpeaker());
+
+        if (rxCache != null) {
+            return rxCache;
+        }
+
+        return builder.persistence(cacheDirectory, new GsonSpeaker());
     }
 
     /**
      * 需要单独给 {@link RxCache} 提供缓存路径
-     *
-     * @param cacheDir
-     * @return
      */
     @Singleton
     @Provides
@@ -178,8 +152,6 @@ public class ClientModule {
 
     /**
      * 提供处理 RxJava 错误的管理器
-     *
-     * @return
      */
     @Singleton
     @Provides
@@ -203,10 +175,6 @@ public class ClientModule {
         /**
          * 若想自定义 RxCache 的缓存文件夹或者解析方式, 如改成 fastjson
          * 请 {@code return rxCacheBuilder.persistence(cacheDirectory, new FastJsonSpeaker());}, 否则请 {@code return null;}
-         *
-         * @param context
-         * @param builder
-         * @return
          */
         RxCache configRxCache(Context context, RxCache.Builder builder);
     }

@@ -1,18 +1,3 @@
-/**
- * Copyright 2017 JessYan
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jess.arms.integration.cache;
 
 import android.app.Application;
@@ -24,24 +9,21 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-
 /**
  * ================================================
- * LRU 即 Least Recently Used,最近最少使用,也就是说,当缓存满了,会优先淘汰那些最近最不常访问的数据
- * 此种缓存策略为框架默认提供,可自行实现其他缓存策略,如磁盘缓存,为框架或开发者提供缓存的功能
+ * LRU 即 Least Recently Used, 最近最少使用, 也就是说, 当缓存满了, 会优先淘汰那些最近最不常访问的数据
+ * 此种缓存策略为框架默认提供, 可自行实现其他缓存策略, 如磁盘缓存, 为框架或开发者提供缓存的功能
  *
  * @see GlobalConfigModule#provideCacheFactory(Application)
  * @see Cache
- * Created by JessYan on 25/09/2017 16:57
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 public class LruCache<K, V> implements Cache<K, V> {
-    private final LinkedHashMap<K, V> cache = new LinkedHashMap<>(100, 0.75f, true);
-    private final int initialMaxSize;
-    private int maxSize;
-    private int currentSize = 0;
+
+    private final LinkedHashMap<K, V> mCache = new LinkedHashMap<>(100, 0.75f, true);
+    private final int mInitialMaxSize;
+    private int mMaxSize;
+    private int mCurrentSize = 0;
 
     /**
      * Constructor for LruCache.
@@ -49,12 +31,12 @@ public class LruCache<K, V> implements Cache<K, V> {
      * @param size 这个缓存的最大 size,这个 size 所使用的单位必须和 {@link #getItemSize(Object)} 所使用的单位一致.
      */
     public LruCache(int size) {
-        this.initialMaxSize = size;
-        this.maxSize = size;
+        mInitialMaxSize = size;
+        mMaxSize = size;
     }
 
     /**
-     * 设置一个系数应用于当时构造函数中所传入的 size, 从而得到一个新的 {@link #maxSize}
+     * 设置一个系数应用于当时构造函数中所传入的 size, 从而得到一个新的 {@link #mMaxSize}
      * 并会立即调用 {@link #evict} 开始清除满足条件的条目
      *
      * @param multiplier 系数
@@ -63,7 +45,8 @@ public class LruCache<K, V> implements Cache<K, V> {
         if (multiplier < 0) {
             throw new IllegalArgumentException("Multiplier must be >= 0");
         }
-        maxSize = Math.round(initialMaxSize * multiplier);
+
+        mMaxSize = Math.round(mInitialMaxSize * multiplier);
         evict();
     }
 
@@ -92,7 +75,7 @@ public class LruCache<K, V> implements Cache<K, V> {
      */
     @Override
     public synchronized int getMaxSize() {
-        return maxSize;
+        return mMaxSize;
     }
 
     /**
@@ -100,7 +83,7 @@ public class LruCache<K, V> implements Cache<K, V> {
      */
     @Override
     public synchronized int size() {
-        return currentSize;
+        return mCurrentSize;
     }
 
     /**
@@ -110,17 +93,15 @@ public class LruCache<K, V> implements Cache<K, V> {
      */
     @Override
     public synchronized boolean containsKey(K key) {
-        return cache.containsKey(key);
+        return mCache.containsKey(key);
     }
 
     /**
      * 返回当前缓存中含有的所有 {@code key}
-     *
-     * @return
      */
     @Override
     public Set<K> keySet() {
-        return cache.keySet();
+        return mCache.keySet();
     }
 
     /**
@@ -131,7 +112,7 @@ public class LruCache<K, V> implements Cache<K, V> {
     @Override
     @Nullable
     public synchronized V get(K key) {
-        return cache.get(key);
+        return mCache.get(key);
     }
 
     /**
@@ -148,18 +129,20 @@ public class LruCache<K, V> implements Cache<K, V> {
     @Nullable
     public synchronized V put(K key, V value) {
         final int itemSize = getItemSize(value);
-        if (itemSize >= maxSize) {
+        if (itemSize >= mMaxSize) {
             onItemEvicted(key, value);
             return null;
         }
 
-        final V result = cache.put(key, value);
+        final V result = mCache.put(key, value);
         if (value != null) {
-            currentSize += getItemSize(value);
+            mCurrentSize += getItemSize(value);
         }
+
         if (result != null) {
-            currentSize -= getItemSize(result);
+            mCurrentSize -= getItemSize(result);
         }
+
         evict();
 
         return result;
@@ -174,9 +157,9 @@ public class LruCache<K, V> implements Cache<K, V> {
     @Override
     @Nullable
     public synchronized V remove(K key) {
-        final V value = cache.remove(key);
+        final V value = mCache.remove(key);
         if (value != null) {
-            currentSize -= getItemSize(value);
+            mCurrentSize -= getItemSize(value);
         }
         return value;
     }
@@ -191,17 +174,15 @@ public class LruCache<K, V> implements Cache<K, V> {
 
     /**
      * 当指定的 size 小于当前缓存已占用的总 size 时,会开始清除缓存中最近最少使用的条目
-     *
-     * @param size
      */
     protected synchronized void trimToSize(int size) {
         Map.Entry<K, V> last;
-        while (currentSize > size) {
-            last = cache.entrySet().iterator().next();
+        while (mCurrentSize > size) {
+            last = mCache.entrySet().iterator().next();
             final V toRemove = last.getValue();
-            currentSize -= getItemSize(toRemove);
+            mCurrentSize -= getItemSize(toRemove);
             final K key = last.getKey();
-            cache.remove(key);
+            mCache.remove(key);
             onItemEvicted(key, toRemove);
         }
     }
@@ -210,7 +191,7 @@ public class LruCache<K, V> implements Cache<K, V> {
      * 当缓存中已占用的总 size 大于所能允许的最大 size ,会使用  {@link #trimToSize(int)} 开始清除满足条件的条目
      */
     private void evict() {
-        trimToSize(maxSize);
+        trimToSize(mMaxSize);
     }
 }
 

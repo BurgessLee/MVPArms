@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.utils;
 
 import android.content.Context;
@@ -26,10 +11,6 @@ import android.view.View;
 /**
  * ================================================
  * 处理高斯模糊的工具类
- * <p>
- * Created by JessYan on 03/06/2014.
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 public class FastBlur {
@@ -187,6 +168,7 @@ public class FastBlur {
             }
             yw += w;
         }
+
         for (x = 0; x < w; x++) {
             rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
             yp = -radius * w;
@@ -275,10 +257,6 @@ public class FastBlur {
 
     /**
      * 给 {@link View} 设置高斯模糊背景图片
-     *
-     * @param context
-     * @param bkg
-     * @param view
      */
     public static void blur(Context context, Bitmap bkg, View view) {
         long startMs = System.currentTimeMillis();
@@ -287,8 +265,7 @@ public class FastBlur {
         //放大到整个view的大小
         bkg = DrawableProvider.getReSizeBitmap(bkg, view.getMeasuredWidth(), view.getMeasuredHeight());
 
-        Bitmap overlay = Bitmap.createBitmap((int) (view.getMeasuredWidth() / scaleFactor)
-                , (int) (view.getMeasuredHeight() / scaleFactor), Bitmap.Config.ARGB_8888);
+        Bitmap overlay = Bitmap.createBitmap((int) (view.getMeasuredWidth() / scaleFactor), (int) (view.getMeasuredHeight() / scaleFactor), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(overlay);
         canvas.translate(-view.getLeft() / scaleFactor, -view.getTop() / scaleFactor);
         canvas.scale(1 / scaleFactor, 1 / scaleFactor);
@@ -302,20 +279,14 @@ public class FastBlur {
 
     /**
      * 将 {@link Bitmap} 高斯模糊并返回
-     *
-     * @param bkg
-     * @param width
-     * @param height
-     * @return
      */
     public static Bitmap blurBitmap(Bitmap bkg, int width, int height) {
         long startMs = System.currentTimeMillis();
-        float radius = 15;//越大模糊效果越大
+        float radius = 15;// 越大模糊效果越大
         float scaleFactor = 8;
-        //放大到整个view的大小
+        // 放大到整个view的大小
         bkg = DrawableProvider.getReSizeBitmap(bkg, width, height);
-        Bitmap overlay = Bitmap.createBitmap((int) (width / scaleFactor)
-                , (int) (height / scaleFactor), Bitmap.Config.ARGB_8888);
+        Bitmap overlay = Bitmap.createBitmap((int) (width / scaleFactor), (int) (height / scaleFactor), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(overlay);
         canvas.scale(1 / scaleFactor, 1 / scaleFactor);
         Paint paint = new Paint();

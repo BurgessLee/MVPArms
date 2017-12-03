@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.http;
 
 import android.os.Build;
@@ -32,6 +17,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -39,45 +25,49 @@ import okhttp3.ResponseBody;
 /**
  * Fetches an {@link InputStream} using the okhttp library.
  */
-public class OkHttpStreamFetcher implements DataFetcher<InputStream>,
-        okhttp3.Callback {
+public class OkHttpStreamFetcher implements DataFetcher<InputStream>, Callback {
+
     private static final String TAG = "OkHttpFetcher";
-    private final Call.Factory client;
-    private final GlideUrl url;
-    @Synthetic InputStream stream;
-    @Synthetic ResponseBody responseBody;
-    private volatile Call call;
-    private DataCallback<? super InputStream> callback;
+
+    private final Call.Factory mClient;
+    private final GlideUrl mUrl;
+    @Synthetic
+    InputStream mStream;
+    @Synthetic
+    ResponseBody mResponseBody;
+    private volatile Call mCall;
+    private DataCallback<? super InputStream> mCallback;
 
     public OkHttpStreamFetcher(Call.Factory client, GlideUrl url) {
-        this.client = client;
-        this.url = url;
+        mClient = client;
+        mUrl = url;
     }
 
     @Override
     public void loadData(Priority priority, final DataCallback<? super InputStream> callback) {
-        Request.Builder requestBuilder = new Request.Builder().url(url.toStringUrl());
-        for (Map.Entry<String, String> headerEntry : url.getHeaders().entrySet()) {
+        Request.Builder requestBuilder = new Request.Builder().url(mUrl.toStringUrl());
+        for (Map.Entry<String, String> headerEntry : mUrl.getHeaders().entrySet()) {
             String key = headerEntry.getKey();
             requestBuilder.addHeader(key, headerEntry.getValue());
         }
-        Request request = requestBuilder.build();
-        this.callback = callback;
 
-        call = client.newCall(request);
+        Request request = requestBuilder.build();
+        mCallback = callback;
+
+        mCall = mClient.newCall(request);
         if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
-            call.enqueue(this);
+            mCall.enqueue(this);
         } else {
             try {
                 // Calling execute instead of enqueue is a workaround for #2355, where okhttp throws a
                 // ClassCastException on O.
-                onResponse(call, call.execute());
+                onResponse(mCall, mCall.execute());
             } catch (IOException e) {
-                onFailure(call, e);
+                onFailure(mCall, e);
             } catch (ClassCastException e) {
                 // It's not clear that this catch is necessary, the error may only occur even on O if
                 // enqueue is used.
-                onFailure(call, new IOException("Workaround for framework bug on O", e));
+                onFailure(mCall, new IOException("Workaround for framework bug on O", e));
             }
         }
     }
@@ -88,39 +78,40 @@ public class OkHttpStreamFetcher implements DataFetcher<InputStream>,
             Log.d(TAG, "OkHttp failed to obtain result", e);
         }
 
-        callback.onLoadFailed(e);
+        mCallback.onLoadFailed(e);
     }
 
     @Override
     public void onResponse(Call call, Response response) throws IOException {
-        responseBody = response.body();
+        mResponseBody = response.body();
         if (response.isSuccessful()) {
-            long contentLength = responseBody.contentLength();
-            stream = ContentLengthInputStream.obtain(responseBody.byteStream(), contentLength);
-            callback.onDataReady(stream);
+            long contentLength = mResponseBody.contentLength();
+            mStream = ContentLengthInputStream.obtain(mResponseBody.byteStream(), contentLength);
+            mCallback.onDataReady(mStream);
         } else {
-            callback.onLoadFailed(new HttpException(response.message(), response.code()));
+            mCallback.onLoadFailed(new HttpException(response.message(), response.code()));
         }
     }
 
     @Override
     public void cleanup() {
         try {
-            if (stream != null) {
-                stream.close();
+            if (mStream != null) {
+                mStream.close();
             }
         } catch (IOException e) {
             // Ignored
         }
-        if (responseBody != null) {
-            responseBody.close();
+
+        if (mResponseBody != null) {
+            mResponseBody.close();
         }
-        callback = null;
+        mCallback = null;
     }
 
     @Override
     public void cancel() {
-        Call local = call;
+        Call local = mCall;
         if (local != null) {
             local.cancel();
         }

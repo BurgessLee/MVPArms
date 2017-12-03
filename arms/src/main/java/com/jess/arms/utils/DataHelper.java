@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.utils;
 
 import android.content.Context;
@@ -31,16 +16,13 @@ import java.io.ObjectOutputStream;
 /**
  * ================================================
  * 处理数据或本地文件的工具类
- * <p>
- * Created by JessYan on 2016/3/15
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 public class DataHelper {
-    private static SharedPreferences mSharedPreferences;
-    public static final String SP_NAME = "config";
 
+    private static SharedPreferences mSharedPreferences;
+
+    public static final String SP_NAME = "config";
 
     private DataHelper() {
         throw new IllegalStateException("you can't instantiate me!");
@@ -48,9 +30,6 @@ public class DataHelper {
 
     /**
      * 存储重要信息到sharedPreferences；
-     *
-     * @param key
-     * @param value
      */
     public static void setStringSF(Context context, String key, String value) {
         if (mSharedPreferences == null) {
@@ -61,9 +40,6 @@ public class DataHelper {
 
     /**
      * 返回存在sharedPreferences的信息
-     *
-     * @param key
-     * @return
      */
     public static String getStringSF(Context context, String key) {
         if (mSharedPreferences == null) {
@@ -74,9 +50,6 @@ public class DataHelper {
 
     /**
      * 存储重要信息到sharedPreferences；
-     *
-     * @param key
-     * @param value
      */
     public static void setIntergerSF(Context context, String key, int value) {
         if (mSharedPreferences == null) {
@@ -87,9 +60,6 @@ public class DataHelper {
 
     /**
      * 返回存在sharedPreferences的信息
-     *
-     * @param key
-     * @return
      */
     public static int getIntergerSF(Context context, String key) {
         if (mSharedPreferences == null) {
@@ -109,7 +79,7 @@ public class DataHelper {
     }
 
     /**
-     * 清除Shareprefrence
+     * 清除SharePreferences
      */
     public static void clearShareprefrence(Context context) {
         if (mSharedPreferences == null) {
@@ -119,25 +89,22 @@ public class DataHelper {
     }
 
     /**
-     * 将对象储存到sharepreference
-     *
-     * @param key
-     * @param device
-     * @param <T>
+     * 将对象储存到SharePreferences
      */
     public static <T> boolean saveDeviceData(Context context, String key, T device) {
         if (mSharedPreferences == null) {
             mSharedPreferences = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
         }
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {   //Device为自定义类
+        // Device为自定义类
+        try {
             // 创建对象输出流，并封装字节流
             ObjectOutputStream oos = new ObjectOutputStream(baos);
             // 将对象写入字节流
             oos.writeObject(device);
             // 将字节流编码成base64的字符串
-            String oAuth_Base64 = new String(Base64.encode(baos
-                    .toByteArray(), Base64.DEFAULT));
+            String oAuth_Base64 = new String(Base64.encode(baos.toByteArray(), Base64.DEFAULT));
             mSharedPreferences.edit().putString(key, oAuth_Base64).apply();
             return true;
         } catch (Exception e) {
@@ -147,22 +114,20 @@ public class DataHelper {
     }
 
     /**
-     * 将对象从shareprerence中取出来
-     *
-     * @param key
-     * @param <T>
-     * @return
+     * 将对象从SharePreferences中取出来
      */
     public static <T> T getDeviceData(Context context, String key) {
         if (mSharedPreferences == null) {
             mSharedPreferences = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
         }
+
         T device = null;
         String productBase64 = mSharedPreferences.getString(key, null);
 
         if (productBase64 == null) {
             return null;
         }
+
         // 读取字节
         byte[] base64 = Base64.decode(productBase64.getBytes(), Base64.DEFAULT);
 
@@ -176,7 +141,6 @@ public class DataHelper {
             device = (T) bis.readObject();
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return device;
@@ -187,9 +151,9 @@ public class DataHelper {
      */
     public static File getCacheFile(Context context) {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            File file = null;
-            file = context.getExternalCacheDir();//获取系统管理的sd卡缓存文件
-            if (file == null) {//如果获取的文件为空,就使用自己定义的缓存文件夹做缓存路径
+            // 获取系统管理的sd卡缓存文件, 如果获取的文件为空, 就使用自己定义的缓存文件夹做缓存路径
+            File file = context.getExternalCacheDir();
+            if (file == null) {
                 file = new File(getCacheFilePath(context));
                 makeDirs(file);
             }
@@ -201,9 +165,6 @@ public class DataHelper {
 
     /**
      * 获取自定义缓存文件地址
-     *
-     * @param context
-     * @return
      */
     public static String getCacheFilePath(Context context) {
         String packageName = context.getPackageName();
@@ -213,9 +174,6 @@ public class DataHelper {
 
     /**
      * 创建未存在的文件夹
-     *
-     * @param file
-     * @return
      */
     public static File makeDirs(File file) {
         if (!file.exists()) {
@@ -226,9 +184,6 @@ public class DataHelper {
 
     /**
      * 使用递归获取目录文件大小
-     *
-     * @param dir
-     * @return
      */
     public static long getDirSize(File dir) {
         if (dir == null) {
@@ -244,7 +199,8 @@ public class DataHelper {
                 dirSize += file.length();
             } else if (file.isDirectory()) {
                 dirSize += file.length();
-                dirSize += getDirSize(file); // 递归调用继续统计
+                // 递归调用继续统计
+                dirSize += getDirSize(file);
             }
         }
         return dirSize;
@@ -252,9 +208,6 @@ public class DataHelper {
 
     /**
      * 使用递归删除文件夹
-     *
-     * @param dir
-     * @return
      */
     public static boolean deleteDir(File dir) {
         if (dir == null) {
@@ -268,7 +221,8 @@ public class DataHelper {
             if (file.isFile()) {
                 file.delete();
             } else if (file.isDirectory()) {
-                deleteDir(file); // 递归调用继续删除
+                // 递归调用继续删除
+                deleteDir(file);
             }
         }
         return true;
@@ -286,5 +240,4 @@ public class DataHelper {
         out.close();
         return result;
     }
-
 }

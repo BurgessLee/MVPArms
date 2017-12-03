@@ -1,19 +1,3 @@
-/*
- * Copyright 2017 JessYan
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.jess.arms.integration.store.lifecyclemodel;
 
 import android.app.Activity;
@@ -32,13 +16,10 @@ import java.util.Map;
 
 /**
  * @hide 此类为实现 {@link LifecycleModel} 的核心类
- * <p>
- * Created by JessYan on 21/11/2017 16:57
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 public class HolderFragment extends Fragment {
+
     private static final String LOG_TAG = "LifecycleModelStores";
 
     private static final HolderFragmentManager sHolderFragmentManager = new HolderFragmentManager();
@@ -47,8 +28,7 @@ public class HolderFragment extends Fragment {
      * @hide
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-    public static final String HOLDER_TAG =
-            "me.jessyan.arms.state.StateProviderHolderFragment";
+    public static final String HOLDER_TAG = "me.jessyan.arms.state.StateProviderHolderFragment";
 
     private final LifecycleModelStore mLifecycleModelStore = new LifecycleModelStore();
 
@@ -95,41 +75,38 @@ public class HolderFragment extends Fragment {
 
     @SuppressWarnings("WeakerAccess")
     static class HolderFragmentManager {
+
         private Map<Activity, HolderFragment> mNotCommittedActivityHolders = new HashMap<>();
         private Map<Fragment, HolderFragment> mNotCommittedFragmentHolders = new HashMap<>();
 
-        private ActivityLifecycleCallbacks mActivityCallbacks =
-                new EmptyActivityLifecycleCallbacks() {
-                    @Override
-                    public void onActivityDestroyed(Activity activity) {
-                        HolderFragment fragment = mNotCommittedActivityHolders.remove(activity);
-                        if (fragment != null) {
-                            Log.e(LOG_TAG, "Failed to save a LifecycleModel for " + activity);
-                        }
-                    }
-                };
+        private ActivityLifecycleCallbacks mActivityCallbacks = new EmptyActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+                HolderFragment fragment = mNotCommittedActivityHolders.remove(activity);
+                if (fragment != null) {
+                    Log.e(LOG_TAG, "Failed to save a LifecycleModel for " + activity);
+                }
+            }
+        };
 
         private boolean mActivityCallbacksIsAdded = false;
 
-        private FragmentLifecycleCallbacks mParentDestroyedCallback =
-                new FragmentLifecycleCallbacks() {
-                    @Override
-                    public void onFragmentDestroyed(FragmentManager fm, Fragment parentFragment) {
-                        super.onFragmentDestroyed(fm, parentFragment);
-                        HolderFragment fragment = mNotCommittedFragmentHolders.remove(
-                                parentFragment);
-                        if (fragment != null) {
-                            Log.e(LOG_TAG, "Failed to save a LifecycleModel for " + parentFragment);
-                        }
-                    }
-                };
+        private FragmentLifecycleCallbacks mParentDestroyedCallback = new FragmentLifecycleCallbacks() {
+            @Override
+            public void onFragmentDestroyed(FragmentManager fm, Fragment parentFragment) {
+                super.onFragmentDestroyed(fm, parentFragment);
+                HolderFragment fragment = mNotCommittedFragmentHolders.remove(parentFragment);
+                if (fragment != null) {
+                    Log.e(LOG_TAG, "Failed to save a LifecycleModel for " + parentFragment);
+                }
+            }
+        };
 
         void holderFragmentCreated(Fragment holderFragment) {
             Fragment parentFragment = holderFragment.getParentFragment();
             if (parentFragment != null) {
                 mNotCommittedFragmentHolders.remove(parentFragment);
-                parentFragment.getFragmentManager().unregisterFragmentLifecycleCallbacks(
-                        mParentDestroyedCallback);
+                parentFragment.getFragmentManager().unregisterFragmentLifecycleCallbacks(mParentDestroyedCallback);
             } else {
                 mNotCommittedActivityHolders.remove(holderFragment.getActivity());
             }
@@ -142,8 +119,7 @@ public class HolderFragment extends Fragment {
 
             Fragment fragmentByTag = manager.findFragmentByTag(HOLDER_TAG);
             if (fragmentByTag != null && !(fragmentByTag instanceof HolderFragment)) {
-                throw new IllegalStateException("Unexpected "
-                        + "fragment instance was returned by HOLDER_TAG");
+                throw new IllegalStateException("Unexpected " + "fragment instance was returned by HOLDER_TAG");
             }
             return (HolderFragment) fragmentByTag;
         }
@@ -185,8 +161,7 @@ public class HolderFragment extends Fragment {
                 return holder;
             }
 
-            parentFragment.getFragmentManager()
-                    .registerFragmentLifecycleCallbacks(mParentDestroyedCallback, false);
+            parentFragment.getFragmentManager().registerFragmentLifecycleCallbacks(mParentDestroyedCallback, false);
             holder = createHolderFragment(fm);
             mNotCommittedFragmentHolders.put(parentFragment, holder);
             return holder;

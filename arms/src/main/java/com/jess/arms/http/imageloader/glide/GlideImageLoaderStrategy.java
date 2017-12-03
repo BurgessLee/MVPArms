@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package com.jess.arms.http.imageloader.glide;
 
 import android.content.Context;
@@ -30,41 +15,45 @@ import com.jess.arms.http.imageloader.ImageConfig;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
  * ================================================
- * 此类只是简单的实现了 Glide 加载的策略,方便快速使用,但大部分情况会需要应对复杂的场景
+ * 此类只是简单的实现了 Glide 加载的策略, 方便快速使用, 但大部分情况会需要应对复杂的场景
  * 这时可自行实现 {@link BaseImageLoaderStrategy} 和 {@link ImageConfig} 替换现有策略
  *
  * @see GlobalConfigModule.Builder#imageLoaderStrategy(BaseImageLoaderStrategy)
- * Created by JessYan on 8/5/16 16:28
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 public class GlideImageLoaderStrategy implements BaseImageLoaderStrategy<ImageConfigImpl>, GlideAppliesOptions {
 
     @Override
-    public void loadImage(Context ctx, ImageConfigImpl config) {
-        if (ctx == null) throw new NullPointerException("Context is required");
-        if (config == null) throw new NullPointerException("ImageConfigImpl is required");
-        if (TextUtils.isEmpty(config.getUrl())) throw new NullPointerException("Url is required");
-        if (config.getImageView() == null) throw new NullPointerException("Imageview is required");
+    public void loadImage(Context context, ImageConfigImpl config) {
+        if (context == null) {
+            throw new NullPointerException("Context is required");
+        }
 
+        if (config == null) {
+            throw new NullPointerException("ImageConfigImpl is required");
+        }
 
-        GlideRequests requests;
+        if (TextUtils.isEmpty(config.getUrl())) {
+            throw new NullPointerException("Url is required");
+        }
 
-        requests = GlideArms.with(ctx);//如果context是activity则自动使用Activity的生命周期
+        if (config.getImageView() == null) {
+            throw new NullPointerException("ImageView is required");
+        }
 
+        // 如果context是Activity, 则自动使用Activity的生命周期
+        GlideRequests requests = GlideArms.with(context);
         GlideRequest<Drawable> glideRequest = requests.load(config.getUrl())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .centerCrop();
 
-        switch (config.getCacheStrategy()) {//缓存策略
+        // 缓存策略
+        switch (config.getCacheStrategy()) {
             case 0:
                 glideRequest.diskCacheStrategy(DiskCacheStrategy.ALL);
                 break;
@@ -81,61 +70,62 @@ public class GlideImageLoaderStrategy implements BaseImageLoaderStrategy<ImageCo
                 glideRequest.diskCacheStrategy(DiskCacheStrategy.AUTOMATIC);
                 break;
         }
-        if (config.getTransformation() != null) {//glide用它来改变图形的形状
+
+        // glide用它来改变图形的形状
+        if (config.getTransformation() != null) {
             glideRequest.transform(config.getTransformation());
         }
 
-
-        if (config.getPlaceholder() != 0)//设置占位符
+        // 设置占位符
+        if (config.getPlaceholder() != 0) {
             glideRequest.placeholder(config.getPlaceholder());
+        }
 
-        if (config.getErrorPic() != 0)//设置错误的图片
+        // 设置错误的图片
+        if (config.getErrorPic() != 0) {
             glideRequest.error(config.getErrorPic());
+        }
 
-        if (config.getFallback() != 0)//设置请求 url 为空图片
+        // 设置请求 url 为空图片
+        if (config.getFallback() != 0) {
             glideRequest.fallback(config.getFallback());
+        }
 
-
-        glideRequest
-                .into(config.getImageView());
+        glideRequest.into(config.getImageView());
     }
 
     @Override
-    public void clear(final Context ctx, ImageConfigImpl config) {
-        if (ctx == null) throw new NullPointerException("Context is required");
-        if (config == null) throw new NullPointerException("ImageConfigImpl is required");
+    public void clear(final Context context, ImageConfigImpl config) {
+        if (context == null) {
+            throw new NullPointerException("Context is required");
+        }
 
-        if (config.getImageViews() != null && config.getImageViews().length > 0) {//取消在执行的任务并且释放资源
+        if (config == null) {
+            throw new NullPointerException("ImageConfigImpl is required");
+        }
+
+        // 取消正在执行的任务并且释放资源
+        if (config.getImageViews() != null && config.getImageViews().length > 0) {
             for (ImageView imageView : config.getImageViews()) {
-                GlideArms.get(ctx).getRequestManagerRetriever().get(ctx).clear(imageView);
+                GlideArms.get(context).getRequestManagerRetriever().get(context).clear(imageView);
             }
         }
 
-        if (config.isClearDiskCache()) {//清除本地缓存
+        // 清除本地缓存
+        if (config.isClearDiskCache()) {
             Observable.just(0)
                     .observeOn(Schedulers.io())
-                    .subscribe(new Consumer<Integer>() {
-                        @Override
-                        public void accept(@NonNull Integer integer) throws Exception {
-                            Glide.get(ctx).clearDiskCache();
-                        }
-                    });
+                    .subscribe(integer -> Glide.get(context).clearDiskCache());
         }
 
-        if (config.isClearMemory()) {//清除内存缓存
+        // 清除内存缓存
+        if (config.isClearMemory()) {
             Observable.just(0)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<Integer>() {
-                        @Override
-                        public void accept(@NonNull Integer integer) throws Exception {
-                            Glide.get(ctx).clearMemory();
-                        }
-                    });
+                    .subscribe(integer -> Glide.get(context).clearMemory());
         }
-
     }
-
-
+    
     @Override
     public void applyGlideOptions(Context context, GlideBuilder builder) {
         Timber.w("applyGlideOptions");
