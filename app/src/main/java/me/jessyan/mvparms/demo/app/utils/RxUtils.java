@@ -1,18 +1,3 @@
-/**
-  * Copyright 2017 JessYan
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
 package me.jessyan.mvparms.demo.app.utils;
 
 import com.jess.arms.mvp.IView;
@@ -32,10 +17,6 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * ================================================
  * 放置便于使用 RxJava 的一些工具类
- * <p>
- * Created by JessYan on 11/10/2016 16:39
- * <a href="mailto:jess.yan.effort@gmail.com">Contact me</a>
- * <a href="https://github.com/JessYanCoding">Follow me</a>
  * ================================================
  */
 public class RxUtils {
@@ -51,7 +32,8 @@ public class RxUtils {
                         .doOnSubscribe(new Consumer<Disposable>() {
                             @Override
                             public void accept(@NonNull Disposable disposable) throws Exception {
-                                view.showLoading();//显示进度条
+                                // 显示进度条
+                                view.showLoading();
                             }
                         })
                         .subscribeOn(AndroidSchedulers.mainThread())
@@ -59,7 +41,8 @@ public class RxUtils {
                         .doFinally(new Action() {
                             @Override
                             public void run() {
-                                view.hideLoading();//隐藏进度条
+                                // 隐藏进度条
+                                view.hideLoading();
                             }
                         }).compose(RxLifecycleUtils.bindToLifecycle(view));
             }
@@ -79,5 +62,4 @@ public class RxUtils {
     public static <T> LifecycleTransformer<T> bindToLifecycle(IView view) {
         return RxLifecycleUtils.bindToLifecycle(view);
     }
-
 }
