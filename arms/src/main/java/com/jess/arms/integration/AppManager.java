@@ -52,7 +52,7 @@ public final class AppManager {
 
     private Application mApplication;
     /**
-     * 管理所有activity
+     * 管理所有存活的 Activity, 容器中的顺序仅仅是 Activity 的创建顺序, 并不能保证和 Activity 任务栈顺序一致
      */
     public List<Activity> mActivityList;
     /**
@@ -182,7 +182,7 @@ public final class AppManager {
     /**
      * 将在前台的 {@link Activity} 赋值给 {@code currentActivity}, 注意此方法是在 {@link Activity#onResume} 方法执行时将栈顶的 {@link Activity} 赋值给 {@code currentActivity}
      * 所以在栈顶的 {@link Activity} 执行 {@link Activity#onCreate} 方法时使用 {@link #getCurrentActivity()} 获取的就不是当前栈顶的 {@link Activity}, 可能是上一个 {@link Activity}
-     * 如果在 App 的第一个 {@link Activity} 执行 {@link Activity#onCreate} 方法时使用 {@link #getCurrentActivity()} 则会出现返回为 {@code null} 的情况
+     * 如果在 App 启动第一个 {@link Activity} 执行 {@link Activity#onCreate} 方法时使用 {@link #getCurrentActivity()} 则会出现返回为 {@code null} 的情况
      * 想避免这种情况请使用 {@link #getTopActivity()}
      */
     public void setCurrentActivity(Activity currentActivity) {
@@ -204,8 +204,14 @@ public final class AppManager {
     }
 
     /**
-     * 获取位于栈顶的 {@link Activity}, 此方法不保证获取到的 {@link Activity} 正处于可见状态, 即使 App 进入后台也会返回当前栈顶的 {@link Activity}
-     * 因此基本不会出现 {@code null} 的情况, 比较适合大部分的使用场景, 如 startActivity, Glide 加载图片
+     * 获取最近启动的一个 {@link Activity}, 此方法不保证获取到的 {@link Activity} 正处于前台可见状态
+     * 即使 App 进入后台或在这个 {@link Activity} 中打开一个之前已经存在的 {@link Activity}, 这时调用此方法
+     * 还是会返回这个最近启动的 {@link Activity}, 因此基本不会出现 {@code null} 的情况
+     * 比较适合大部分的使用场景, 如 startActivity
+     * <p>
+     * Tips: mActivityList 容器中的顺序仅仅是 Activity 的创建顺序, 并不能保证和 Activity 任务栈顺序一致
+     *
+     * @return
      */
     public Activity getTopActivity() {
         if (mActivityList == null) {
@@ -242,13 +248,14 @@ public final class AppManager {
 
     /**
      * 删除集合里的指定的 {@link Activity} 实例
+     *
+     * @param {@link Activity}
      */
     public void removeActivity(Activity activity) {
         if (mActivityList == null) {
             Timber.tag(TAG).w("mActivityList == null when removeActivity(Activity)");
             return;
         }
-
         synchronized (AppManager.class) {
             if (mActivityList.contains(activity)) {
                 mActivityList.remove(activity);
@@ -321,14 +328,16 @@ public final class AppManager {
     }
 
     /**
-     * 获取指定 {@link Activity} class 的实例,没有则返回 null(同一个 {@link Activity} class 有多个实例,则返回最早的实例)
+     * 获取指定 {@link Activity} class 的实例,没有则返回 null(同一个 {@link Activity} class 有多个实例,则返回最早创建的实例)
+     *
+     * @param activityClass
+     * @return
      */
     public Activity findActivity(Class<?> activityClass) {
         if (mActivityList == null) {
             Timber.tag(TAG).w("mActivityList == null when findActivity(Class)");
             return null;
         }
-
         for (Activity activity : mActivityList) {
             if (activity.getClass().equals(activityClass)) {
                 return activity;
