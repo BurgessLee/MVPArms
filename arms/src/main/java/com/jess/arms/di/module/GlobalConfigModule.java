@@ -1,6 +1,7 @@
 package com.jess.arms.di.module;
 
 import android.app.Application;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
@@ -11,6 +12,7 @@ import com.jess.arms.http.RequestInterceptor;
 import com.jess.arms.http.imageloader.BaseImageLoaderStrategy;
 import com.jess.arms.http.imageloader.glide.GlideImageLoaderStrategy;
 import com.jess.arms.integration.cache.Cache;
+import com.jess.arms.integration.cache.CacheType;
 import com.jess.arms.integration.cache.LruCache;
 import com.jess.arms.utils.DataHelper;
 
